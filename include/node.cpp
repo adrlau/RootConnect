@@ -6,12 +6,12 @@ class Node {
 private:
     std::string id;
     std::string address;
-    std::string encryptionKey; //public key of the node for encryption
+    std::string publicKey; //public key of the node for encryption
     std::vector<Node*> neighbors;
 
 public:
     Node(const std::string& nodeId, const std::string& nodeAddress, const std::string& nodeEncryptionKey)
-        : id(nodeId), address(nodeAddress), encryptionKey(nodeEncryptionKey) {}
+        : id(nodeId), address(nodeAddress), publicKey(nodeEncryptionKey) {}
 
     std::string getID() const {
         return id;
@@ -21,8 +21,8 @@ public:
         return address;
     }
 
-    std::string getEncryptionKey() const {
-        return encryptionKey;
+    std::string getPublicKey() const {
+        return publicKey;
     }
 
     void addNeighbor(Node* neighbor) {

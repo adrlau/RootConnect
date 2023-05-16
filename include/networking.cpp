@@ -61,15 +61,16 @@ public:
                     std::cout << "Failed to accept client connection" << std::endl;
                     continue;
                 }
-
                 char buffer[1024];
                 memset(buffer, 0, sizeof(buffer));
                 ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
                 if (bytesRead > 0) {
                     std::string receivedMessage(buffer);
+                    
+                    //TODO: if a message was received and it should be relayed, relay it to the next address
+
                     std::cout << "Received message: " << receivedMessage << std::endl;
                 }
-
                 close(clientSocket);
             }
         } else {
@@ -80,7 +81,7 @@ public:
 
     void startListeningThread() {
         std::thread listenerThread(&Networking::listenForMessages, this);
-        std::cout << "Listening for messages..." << std::endl;
+        // std::cout << "Listening for messages..." << std::endl;
         listenerThread.detach();
     }
 

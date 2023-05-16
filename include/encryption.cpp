@@ -18,6 +18,7 @@ private:
 
 public:
     static std::string encrypt(const std::string& message, const std::string& publicKey) { //publicKey is the encryption key of the node you are sending the message to
+
         RSA* rsa = RSA_new();
         BIO* publicKeyBio = BIO_new_mem_buf(publicKey.c_str(), -1);
 

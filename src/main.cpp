@@ -1,6 +1,6 @@
 #include <iostream>
-
 #include "../include/networking.cpp"
+#include "../include/message.cpp"
 
 int main() {
     // Take input for the address and port to bind to
@@ -51,11 +51,15 @@ int main() {
             sendPort = std::stoi(sendPortInput);
         }
 
-        std::string message;
-        std::cout << "Enter message to send: ";
-        std::getline(std::cin, message);
+        std::string messageContent;
+        std::cout << "Enter message content: ";
+        std::getline(std::cin, messageContent);
 
-        networking.sendMessage(sendAddress, sendPort, message);
+        // Create a Message object with the next address and content
+        Message message(sendAddress, messageContent);
+
+        // Send the message
+        networking.sendMessage(sendAddress, sendPort, message.toString());
     }
 
     // Wait for some time to receive messages

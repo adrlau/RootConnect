@@ -1,80 +1,107 @@
 #include <string>
 #include <vector>
-#include "encryption.cpp"
 #include "node.cpp"
 
 class Message {
 private:
-    std::vector<Node> path;
-    std::string next;
-    std::string encryptedContent;
-    std::string padding = ""; //used in a future implementation to reduce the ability to guess the stage in the path based on the length of the encrypted content
-
+    std::string nextAddress;
+    std::string content;
+    std::string padding = ""; // Used in a future implementation to reduce the ability to guess the stage in the path based on the length of the content
 public:
-    Message(const std::vector<Node>& p, const std::string& n, const std::string& c) : path(p), next(n) {
-        encryptedContent = Encryption::encrypt(c, "encryptionkey_for_the_node_or_something"); // Encrypt the content using a suitable encryption algorithm
+    
+    Message(const std::string& n, const std::string& c) : nextAddress(n), content(c) {
     }
-
-    Message(const std::vector<Node>& p, const std::string& c) : path(p), next(p.front().getAddress()) {
-        encryptedContent = Encryption::encrypt(c, "encryptionkey_for_the_node_or_something"); // Encrypt the content using a suitable encryption algorithm
-    }
-
-    Message(const std::string& c) : encryptedContent(Encryption::encrypt(c)) {
-        // In this case, the path and next will not be included in the message
-    }
-
+    
     // Create Message object from a string representation
     Message(const std::string& s) {
-        //TODO: implement this constructor that decodes the object, The only usecase for this is to decode the message for relay or getting the content. No need to decode the path. 
+        // Get the next node from the Next-Destination:
+        nextAddress = s.substr(s.find("Next-Destination: ") + 17, s.find("Content:") - s.find("Next-Destination:") - 17);
 
-        //set path to null
-        path = std::vector<Node>();
+        // Get the content from the Content: 
+        content = s.substr(s.find("Content:") + 8, s.find("Padding:") - s.find("Content:") - 8);
+    }
+    
 
-        //get the next node from the Next-Destination:
-        next = s.substr(s.find("Next-Destination:") + 17, s.find("Content:") - s.find("Next-Destination:") - 17);
-
-        //get the content from the Content: 
-        encryptedContent = s.substr(s.find("Content:") + 8, s.find("Padding:") - s.find("Content:") - 8);
+    std::string getContent(){
+        return content;
     }
 
-    void setPath(const std::vector<Node>& p) {
-        path = p;
-    }
-
-    void setNext(const std::string& n) {
-        next = n;
+    void setNextAddress(const std::string& n) {
+        nextAddress = n;
     }
 
     void setContent(const std::string& c) {
-        encryptedContent = Encryption::encrypt(c); // Encrypt the content using a suitable encryption algorithm
+        content = c;
     }
 
-    std::vector<std::string> getPath() const {
-        return path;
+    std::string getNextAddress() const {
+        return nextAddress;
     }
 
-    std::string getNext() const {
-        return next;
+    int getNextPort(const std::string& nextAddress) {
+        size_t colonPos = nextAddress.find(':');
+        if (colonPos != std::string::npos) {
+            std::string portStr = nextAddress.substr(colonPos + 1);
+            try {
+                int port = std::stoi(portStr);
+                return port;
+            } catch (const std::exception& e) {
+                std::cerr << "Error converting port to integer: " << e.what() << std::endl;
+            }
+        }
+        return -1;  // or any other value indicating failure to parse the port
     }
 
-    std::string getDecryptedContent() const {
-        return Encryption::decrypt(encryptedContent); // Decrypt the content using the appropriate decryption algorithm
+    std::string getNextAddress(const std::string& nextAddress) {
+        size_t colonPos = nextAddress.find(':');
+        if (colonPos != std::string::npos) {
+            std::string address = nextAddress.substr(0, colonPos);
+            return address;
+        }
+        return "";  // or any other value indicating failure to parse the address
+    }
+
+    bool isDestination(){
+        if (nextAddress == "NULL"){
+            return true;
+        }
+        return false;
     }
 
     std::string toString() const {
         std::string result = "";
-        std::string base_content = encryptedContent;
-
-        
-
-        //go from last to first in the path
-        for (int i = path.size() - 1; i >= 1; i--) {
-            Node node = path[i];
-
-            //take the addres the previous node should send the message to
-
-        }
-
+        result += "\n";
+        result += "Next-Destination: " + nextAddress;
+        result += "\n";
+        result += "Content: " + content;
+        result += "\n";
         return result;
     }
+
+    std::string encode(std::vector<Node> path, Message lastMessage) {
+        // Base case: If the path is empty, return the last message's content
+        if (path.empty()) {
+            return lastMessage.getContent();
+        }
+
+        // Take the last node in the path
+        Node currentNode = path.back();
+        path.pop_back();
+
+        // Create a new message with the current node's address as the next destination
+        Message encodedMessage(currentNode.getAddress(), "");
+
+        // Set the last message's toString as the content for the current message
+        encodedMessage.setContent(lastMessage.toString());
+
+        // Recursively encode the remaining path using the current message
+        std::string encodedPath = encode(path, encodedMessage);
+
+        // Append the encoded path to the content of the current message
+        encodedMessage.setContent(encodedMessage.getContent() + encodedPath);
+
+        // Return the encoded message as a string
+        return encodedMessage.toString();
+    }
+
 };

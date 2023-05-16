@@ -1,5 +1,5 @@
 # RootConnect
-A simple chatt messaging application written in cpp for a semester assigment in the course IDATT2004 neverksprogrammering at NTNU (Norwegian University for science and technology)
+A simple chat messaging application written in cpp for a semester asigment in the course IDATT2004 neverksprogrammering at NTNU (Norwegian University for science and technology)
 
 
 A simple chat messaging application using onion technology and the ip networking protocoll written in C++ 
