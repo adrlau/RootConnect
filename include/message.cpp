@@ -5,16 +5,17 @@
 
 class Message {
 private:
-    std::vector<std::Node> path;
+    std::vector<Node> path;
     std::string next;
     std::string encryptedContent;
+    std::string padding = ""; //used in a future implementation to reduce the ability to guess the stage in the path based on the length of the encrypted content
 
 public:
-    Message(const std::vector<std::string>& p, const std::string& n, const std::string& c) : path(p), next(n) {
+    Message(const std::vector<Node>& p, const std::string& n, const std::string& c) : path(p), next(n) {
         encryptedContent = Encryption::encrypt(c, "encryptionkey_for_the_node_or_something"); // Encrypt the content using a suitable encryption algorithm
     }
 
-    Message(const std::vector<std::string>& p, const std::string& c) : path(p), next(p.front()) {
+    Message(const std::vector<Node>& p, const std::string& c) : path(p), next(p.front().getAddress()) {
         encryptedContent = Encryption::encrypt(c, "encryptionkey_for_the_node_or_something"); // Encrypt the content using a suitable encryption algorithm
     }
 
@@ -24,19 +25,19 @@ public:
 
     // Create Message object from a string representation
     Message(const std::string& s) {
-        std::string temp = s;
-        std::string delimiter = "/";
-        size_t pos = 0;
-        std::string token;
-        while ((pos = temp.find(delimiter)) != std::string::npos) {
-            token = temp.substr(0, pos);
-            path.push_back(token);
-            temp.erase(0, pos + delimiter.length());
-        }
-        encryptedContent = temp;
+        //TODO: implement this constructor that decodes the object, The only usecase for this is to decode the message for relay or getting the content. No need to decode the path. 
+
+        //set path to null
+        path = std::vector<Node>();
+
+        //get the next node from the Next-Destination:
+        next = s.substr(s.find("Next-Destination:") + 17, s.find("Content:") - s.find("Next-Destination:") - 17);
+
+        //get the content from the Content: 
+        encryptedContent = s.substr(s.find("Content:") + 8, s.find("Padding:") - s.find("Content:") - 8);
     }
 
-    void setPath(const std::vector<std::string>& p) {
+    void setPath(const std::vector<Node>& p) {
         path = p;
     }
 
@@ -62,10 +63,18 @@ public:
 
     std::string toString() const {
         std::string result = "";
-        for (const std::string& s : path) {
-            result += s + "/";
+        std::string base_content = encryptedContent;
+
+        
+
+        //go from last to first in the path
+        for (int i = path.size() - 1; i >= 1; i--) {
+            Node node = path[i];
+
+            //take the addres the previous node should send the message to
+
         }
-        result += encryptedContent;
+
         return result;
     }
 };
