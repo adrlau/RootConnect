@@ -1,139 +1,105 @@
-#include <iostream>
-#include <random>
-#include <algorithm>
-#include <vector>
-#include <string>
-#include <unordered_set>
-
 #include "mesh.hpp"
-#include "node.hpp"
-#include "edge.hpp"
 
-Mesh::~Mesh() {
-    // Clean up dynamically allocated nodes and edges
-    for (Node* node : nodes) {
-        delete node;
-    }
-    for (Edge* edge : edges) {
-        delete edge;
-    }
+Mesh::Mesh() {}
+
+Mesh::Node Mesh::addNode(const std::string& address, const std::string& publicKey) {
+    Node newNode;
+    newNode.address = address;
+    newNode.publicKey = publicKey;
+    nodes.push_back(newNode);
+    return newNode;
 }
 
-Node* Mesh::createNode(const std::string& nodeAddress, const std::string& nodeEncryptionKey) {
-    Node* node = new Node(nodeAddress, nodeEncryptionKey);
-    nodes.push_back(node);
-    return node;
-}
-
-void Mesh::createEdge(Node* source, Node* target) {
-    Edge* edge = new Edge(source, target);
-    edges.push_back(edge);
-}
-
-
-// Get a random neighbor of a given node
-Node* Mesh::getRandomNeighbor(Node* node) {
-    std::vector<Node*> neighbors;
-    for (Edge* edge : this->edges) {
-        if (edge->getSourceNode() == node) {
-            neighbors.push_back(edge->getTargetNode());
-        } else if (edge->getTargetNode() == node) {
-            neighbors.push_back(edge->getSourceNode());
+void Mesh::removeNode(const Node& node) {
+    // Remove the node from the nodes vector
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+        if (it->publicKey == node.publicKey) {
+            nodes.erase(it);
+            break;
         }
     }
 
-    if (!neighbors.empty()) {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<size_t> dist(0, neighbors.size() - 1);
-        return neighbors[dist(gen)];
+    // Remove the edges associated with the removed node
+    for (auto it = edges.begin(); it != edges.end();) {
+        if (it->source.publicKey == node.publicKey || it->target.publicKey == node.publicKey) {
+            it = edges.erase(it);
+        } else {
+            ++it;
+        }
     }
-
-    return nullptr;
 }
 
+void Mesh::addEdge(const Mesh::Node& source, const Mesh::Node& target) {
+    Edge newEdge;
+    newEdge.source = source;
+    newEdge.target = target;
+    edges.push_back(newEdge);
+}
 
-// Generate a random path from one node to another node with a minimum number of n jumps
-std::vector<Node*> Mesh::generateRandomPath(Node* start, Node* end, int n) {
-        std::vector<Node*> path;
-        std::unordered_set<Node*> visited;
-        path.push_back(start);
-        visited.insert(start);
+void Mesh::removeEdge(const Mesh::Node& source, const Mesh::Node& target) {
+    // Remove the edge from the edges vector
+    for (auto it = edges.begin(); it != edges.end(); ++it) {
+        if (it->source.publicKey == source.publicKey && it->target.publicKey == target.publicKey) {
+            edges.erase(it);
+            break;
+        }
+    }
+}
 
-        while (path.size() - 1 < n || path.back() != end) {
-            Node* current = path.back();
-            Node* next = getRandomNeighbor(current);
+std::vector<Mesh::Node> Mesh::findPath(const Mesh::Node& source, const Mesh::Node& target) {
+    std::vector<Node> path;
+    path.push_back(source);
 
-            if (!next) {
-                // No more available neighbors, backtrack
-                if (path.size() <= 1) {
-                    // Reached a dead end, cannot reach the target node
-                    return {};
-                }
-                path.pop_back();
-            } else {
-                if (visited.find(next) != visited.end()) {
-                    // Avoid revisiting nodes to prevent cycles
-                    continue;
-                }
-                path.push_back(next);
-                visited.insert(next);
+    // Find the path from source to target
+    Node currentNode = source;
+    while (currentNode.publicKey != target.publicKey) {
+        bool foundNextNode = false;
+        for (const auto& edge : edges) {
+            if (edge.source.publicKey == currentNode.publicKey) {
+                path.push_back(edge.target);
+                currentNode = edge.target;
+                foundNextNode = true;
+                break;
             }
         }
-        return path;
-}
 
-
-
-std::vector<Node*> Mesh::getMesh() const {
-return nodes;
-}
-
-void Mesh::addMesh(const Mesh& otherMesh) {
-    // Add nodes from otherMesh
-    for (Node* node : otherMesh.nodes) {
-    // Check if the node already exists in the current mesh
-    auto it = std::find_if(nodes.begin(), nodes.end(), [&](const Node* n) {
-    return n->getID() == node->getID();
-    });
-        if (it == nodes.end()) {
-            // Node doesn't exist in the current mesh, so add it
-            createNode(node->getAddress(), node->getPublicKey());
+        if (!foundNextNode) {
+            // No path exists from source to target
+            return std::vector<Node>();
         }
     }
 
-    // Add edges from otherMesh
-    for (Edge* edge : otherMesh.edges) {
-        Node* source = nullptr;
-        Node* target = nullptr;
-
-        // Find the corresponding source node in the current mesh
-        auto sourceIt = std::find_if(nodes.begin(), nodes.end(), [&](const Node* n) {
-            return n->getID() == edge->getSourceNode()->getID();
-        });
-
-        if (sourceIt != nodes.end()) {
-            source = *sourceIt;
-        }
-
-        // Find the corresponding target node in the current mesh
-        auto targetIt = std::find_if(nodes.begin(), nodes.end(), [&](const Node* n) {
-            return n->getID() == edge->getTargetNode()->getID();
-        });
-
-        if (targetIt != nodes.end()) {
-            target = *targetIt;
-        }
-
-        if (source && target) {
-            // Both source and target nodes exist, so create the edge
-            createEdge(source, target);
-        }
-    }
+    return path;
 }
 
-void Mesh::printMesh() const {
-    for (Edge* edge : edges) {
-    std::cout << "Edge: " << edge->getSourceNode()->getID() << " <-> " << edge->getTargetNode()->getID() << std::endl;
+void Mesh::mergeMesh(const Mesh otherMesh) {
+    // Merge the nodes and edges from the otherMesh
+    nodes.insert(nodes.end(), otherMesh.nodes.begin(), otherMesh.nodes.end());
+    edges.insert(edges.end(), otherMesh.edges.begin(), otherMesh.edges.end());
+}
+
+std::vector<Mesh::Node> Mesh::getNodes() const {
+    return nodes;
+}
+
+Mesh::Node Mesh::getNode(const std::string& publicKey) const {
+    for (const auto& node : nodes) {
+        if (node.publicKey == publicKey) {
+            return node;
+        }
+    }
+    // Return an empty node if the specified publicKey is not found
+    return Node();
+}
+
+void Mesh::printMesh() {
+    std::cout << "Nodes:\n";
+    for (const auto& node : nodes) {
+        std::cout << "Public Key: " << node.publicKey << ", Address: " << node.address << '\n';
+    }
+
+    std::cout << "Edges:\n";
+    for (const auto& edge : edges) {
+        std::cout << "Source: " << edge.source.publicKey << ", Target: " << edge.target.publicKey << '\n';
     }
 }

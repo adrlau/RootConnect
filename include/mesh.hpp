@@ -1,33 +1,41 @@
-#pragma once
 #ifndef MESH_HPP
 #define MESH_HPP
 
+#include <iostream>
 #include <string>
 #include <vector>
-#include "node.hpp"
-#include "edge.hpp"
+
 
 class Mesh {
-private:
-    std::vector<Node*> nodes;
-    std::vector<Edge*> edges;
-
 public:
-    ~Mesh();
+    struct Node {
+        std::string publicKey;
+        std::string address;
+    };
 
-    Node* createNode(const std::string& nodeAddress, const std::string& nodeEncryptionKey);
 
-    void createEdge(Node* source, Node* target);
 
-    Node* getRandomNeighbor(Node* node); // Helper function to get a random neighbor node of a given node
+    Mesh();
 
-    std::vector<Node*> generateRandomPath(Node* startNode, Node* endNode, int numJumps);
+    Mesh::Node addNode(const std::string& address, const std::string& publicKey);
+    void removeNode(const Node& node);
+    void addEdge(const Mesh::Node& source, const Mesh::Node& target);
+    void removeEdge(const Mesh::Node& source, const Mesh::Node& target);
 
-    std::vector<Node*> getMesh() const;
+    std::vector<Mesh::Node> findPath(const Mesh::Node& source, const Mesh::Node& target);
+    void mergeMesh(const Mesh otherMesh);
+    std::vector<Node> getNodes() const;
+    Mesh::Node getNode(const std::string& publicKey) const;
+    void printMesh();
 
-    void addMesh(const Mesh& otherMesh);
+private:
+    struct Edge {
+        Mesh::Node source;
+        Mesh::Node target;
+    };
 
-    void printMesh() const;
+    std::vector<Mesh::Node> nodes;
+    std::vector<Mesh::Edge> edges;
 };
 
 #endif // MESH_HPP

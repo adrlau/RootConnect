@@ -80,6 +80,9 @@
         "charconv": "cpp",
         "format": "cpp",
         "span": "cpp",
-        "stdfloat": "cpp"
+        "stdfloat": "cpp",
+        "csignal": "cpp",
+        "any": "cpp",
+        "coroutine": "cpp"
     }
 }
