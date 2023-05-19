@@ -132,16 +132,25 @@ int main() {
     }
 
     //network test
+    std::cout << std::endl << std::endl << "Testing networking " << std::endl;
+
+    std::vector<std::string> keys5 = Encryption::generateKeypair();
+    Mesh mesh3;
+    Mesh::Node node5 = mesh3.addNode("127.0.0.1:8080", keys5[1]);
+    //path
+    std::vector<Mesh::Node> path3 = { node5, node5};
+    //message
+    Message message5("NULL", "Hello, world!");
+    message5 = message5.encode(path3);
+
     //send a message from node1 to node1 using the networking class
     Networking networking(node1.bindAddress(), node1.bindPort());
     networking.startListeningThread();
     std::cout << "Started Listening for messages..." << std::endl;
 
-    //encode the message but use the manual path instead of the mesh generated path as decoding with private keys only works if there is multiple nodes and we are simulating a mesh here
-    Message message3 = message1.encode(path2);
     //send the message
-    networking.sendMessage(node1.bindAddress(), node1.bindPort(), message3.toString());
-
+    std::cout << "sending message..." << std::endl;
+    networking.sendMessage(node1.bindAddress(), node1.bindPort(), message5.toString());
 
 
     return 0;

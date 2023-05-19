@@ -68,10 +68,14 @@ void Networking::listenForMessages() {
 
                 //parse the message to get the next address
                 Message message(receivedMessage);
+                //decrypt the message with the private key of this node to get the next address and content
+                message.decode(Encryption::getPrivateKey());
                 std::string nextAddress = message.getNextAddress();
                 int nextPort = message.getNextPort(message.getNextAddressFull());
-                if (nextAddress == ipAddress || message.isDestination()) {
+
+                if (message.isDestination()) {
                     std::cout << "Message has reached destination" << std::endl;
+                    std::cout << "Message content: " << message.getContent() << std::endl;
                 } else {
                     std::cout << "Message is not for this node, sending to " << message.getNextAddressFull() << std::endl;
                     sendMessage(nextAddress, nextPort, message.getContent());
