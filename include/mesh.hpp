@@ -4,16 +4,31 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 
 
 class Mesh {
 public:
+
     struct Node {
         std::string publicKey;
         std::string address;
+
+        std::string bindAddress(){
+            //return address until the first :
+            return address.substr(0, address.find(":"));
+        }
+
+        int bindPort(){
+            //return the port after the first :
+            return std::stoi(address.substr(address.find(":") + 1));
+        }
     };
 
-
+    struct Edge {
+        Mesh::Node source;
+        Mesh::Node target;
+    };
 
     Mesh();
 
@@ -29,13 +44,9 @@ public:
     void printMesh();
 
 private:
-    struct Edge {
-        Mesh::Node source;
-        Mesh::Node target;
-    };
-
     std::vector<Mesh::Node> nodes;
     std::vector<Mesh::Edge> edges;
+    bool dfs(const Mesh::Node& currentNode, const Mesh::Node& target, std::vector<Mesh::Node>& path, std::list<Mesh::Node>& visitedNodes);
 };
 
 #endif // MESH_HPP

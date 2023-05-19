@@ -1,29 +1,53 @@
-/**
- * please note that this code is not secure and should not be used for real encryption purposes. 
- * It's only intended for demonstration purposes, and is not secure enough to be used in production.
-*/
-
-#include "encryption.hpp"
 #include <iostream>
-#include <random>
+#include <string>
+#include <vector>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#include "encryption.hpp"
 
-std::string Encryption::privateKey = "YourPrivateEncryptionKey";
-std::string Encryption::publicKey = "YourPublicEncryptionKey";
+std::string Encryption::privateKey;
+std::string Encryption::publicKey;
 
 std::string Encryption::encrypt(const std::string& message, const std::string& publicKey) {
-    std::string encryptedMessage;
-    for (size_t i = 0; i < message.size(); ++i) {
-        encryptedMessage += message[i] ^ publicKey[i % publicKey.size()];
-    }
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    unsigned char* ciphertext = new unsigned char[message.size() + EVP_MAX_BLOCK_LENGTH];
+    int ciphertextLength = 0;
+
+    EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, reinterpret_cast<const unsigned char*>(publicKey.c_str()), NULL);
+    EVP_EncryptUpdate(ctx, ciphertext, &ciphertextLength, reinterpret_cast<const unsigned char*>(message.c_str()), message.size());
+    int finalLength;
+    EVP_EncryptFinal_ex(ctx, ciphertext + ciphertextLength, &finalLength);
+    ciphertextLength += finalLength;
+
+    std::string encryptedMessage(reinterpret_cast<char*>(ciphertext), ciphertextLength);
+
+    delete[] ciphertext;
+    EVP_CIPHER_CTX_free(ctx);
+
     return encryptedMessage;
 }
 
+
 std::string Encryption::decrypt(const std::string& encryptedMessage) {
-    std::string privateKey = getPrivateKey();
-    std::string decryptedMessage;
-    for (size_t i = 0; i < encryptedMessage.size(); ++i) {
-        decryptedMessage += encryptedMessage[i] ^ privateKey[i % privateKey.size()];
-    }
+    return decrypt(encryptedMessage, privateKey);
+}
+
+std::string Encryption::decrypt(const std::string& encryptedMessage, const std::string& privateKey) {
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    unsigned char* plaintext = new unsigned char[encryptedMessage.size() + EVP_MAX_BLOCK_LENGTH];
+    int plaintextLength = 0;
+
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, reinterpret_cast<const unsigned char*>(privateKey.c_str()), NULL);
+    EVP_DecryptUpdate(ctx, plaintext, &plaintextLength, reinterpret_cast<const unsigned char*>(encryptedMessage.c_str()), encryptedMessage.size());
+    int finalLength;
+    EVP_DecryptFinal_ex(ctx, plaintext + plaintextLength, &finalLength);
+    plaintextLength += finalLength;
+
+    std::string decryptedMessage(reinterpret_cast<char*>(plaintext), plaintextLength);
+
+    delete[] plaintext;
+    EVP_CIPHER_CTX_free(ctx);
+
     return decryptedMessage;
 }
 
@@ -35,19 +59,11 @@ std::string Encryption::getPublicKey() {
     return publicKey;
 }
 
-void Encryption::generateKeypair() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<char> distribution('A', 'Z');
+std::vector<std::string> Encryption::generateKeypair() {
+    unsigned char buffer[32];
+    RAND_bytes(buffer, sizeof(buffer));
 
-    privateKey = "";
-    publicKey = "";
-    for (int i = 0; i < 16; ++i) {
-        privateKey += distribution(gen);
-        publicKey += distribution(gen);
-    }
-
-    std::cout << "Generated Keypair:" << std::endl;
-    std::cout << "Private Key: " << privateKey << std::endl;
-    std::cout << "Public Key: " << publicKey << std::endl;
+    privateKey = std::string(reinterpret_cast<char*>(buffer), sizeof(buffer));
+    publicKey = std::string(reinterpret_cast<char*>(buffer), sizeof(buffer));
+    return {privateKey, publicKey};
 }

@@ -1,4 +1,7 @@
 #include "networking.hpp"
+#include "message.hpp"
+#include "encryption.hpp"
+
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
@@ -59,9 +62,28 @@ void Networking::listenForMessages() {
             if (bytesRead > 0) {
                 std::string receivedMessage(buffer);
 
-                // TODO: if a message was received and it should be relayed, relay it to the next address
-
                 std::cout << "Received message: " << receivedMessage << std::endl;
+                
+                //do stuff with the message to determine if it is for this node or not
+
+                //parse the message to get the next address
+                Message message(receivedMessage);
+                std::string nextAddress = message.getNextAddress();
+                int nextPort = message.getNextPort(message.getNextAddressFull());
+                if (nextAddress == ipAddress || message.isDestination()) {
+                    std::cout << "Message has reached destination" << std::endl;
+                } else {
+                    std::cout << "Message is not for this node, sending to " << message.getNextAddressFull() << std::endl;
+                    sendMessage(nextAddress, nextPort, message.getContent());
+                }
+
+                //this is not really implemented yet, but it is a start to send the public key to a node when it is requested
+                // if content contains "getPubKey" then send the public key of this node to the sender
+                if (receivedMessage.find("getPubKey") != std::string::npos) {
+                    std::cout << "Sending public key to " << message.getNextAddressFull() << std::endl;
+                    sendMessage(message.getNextAddress(), message.getNextPort(message.getNextAddressFull()), "pubKey:" + Encryption::getPublicKey());
+                }
+
             }
             close(clientSocket);
         }
