@@ -30,11 +30,11 @@ int main() {
     std::vector<std::string> keys1 = Encryption::generateKeypair();
     Mesh::Node node1 = mesh1.addNode("127.0.0.1:8080", keys1[1]);//all use same public key to test and decrypt with same private key
     std::vector<std::string> keys2 = Encryption::generateKeypair();
-    Mesh::Node node2 = mesh1.addNode("127.0.0.1:8080", keys2[1]);
+    Mesh::Node node2 = mesh1.addNode("127.0.0.2:8080", keys2[1]);
     std::vector<std::string> keys3 = Encryption::generateKeypair();
-    Mesh::Node node3 = mesh2.addNode("127.0.0.1:8080", keys3[1]);
+    Mesh::Node node3 = mesh2.addNode("127.0.0.3:8080", keys3[1]);
     std::vector<std::string> keys4 = Encryption::generateKeypair();
-    Mesh::Node node4 = mesh2.addNode("127.0.0.1:8080", keys4[1]);
+    Mesh::Node node4 = mesh2.addNode("127.0.0.4:8080", keys4[1]);
 
     mesh1.addEdge(node1, node2);
     mesh2.addEdge(node3, node4);
@@ -59,7 +59,7 @@ int main() {
 
     std::cout << "Path: ";
     for (const auto& node : path) {
-        std::cout << node.publicKey << " -> ";
+        std::cout << node.publicKey.substr(72, 10) << " -> ";
     }
     std::cout << std::endl;
 
@@ -76,7 +76,7 @@ int main() {
 
     std::cout << "Path2: ";
     for (const auto& node : path2) {
-        std::cout << node.publicKey << " -> ";
+        std::cout << node.publicKey.substr(72, 10) << " -> ";
     }
     std::cout << std::endl;
 
@@ -91,7 +91,7 @@ int main() {
     std::cout << "Testing path encoded message encoding and decoding " << std::endl;
     std::cout << "Path: ";
     for (const auto& node : path) {
-        std::cout << node.publicKey << " -> ";
+        std::cout << node.publicKey.substr(72, 10) << " -> ";
     }
     std::cout << std::endl;
 
@@ -128,7 +128,7 @@ int main() {
     }
 
     for (size_t i = 0; i < path.size()-1; i++) {
-        std::cout << "Decoded Message: " << " node " << path[i].publicKey << " -> " << std::endl << message4.decode(keysc[i+1]) << std::endl;
+        std::cout << "Decoded Message: " << " node " << path[i].publicKey.substr(72, 10) << " -> " << std::endl << message4.decode(keysc[i+1]) << std::endl;
     }
 
     //network test

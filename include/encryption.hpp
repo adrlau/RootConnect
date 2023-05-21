@@ -3,11 +3,19 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
 
 class Encryption {
 private:
     static std::string privateKey;
     static std::string publicKey;
+
+    static RSA* createRSAKey(const std::string& key, bool isPublicKey);
+    static std::string encryptRSA(const std::string& message, RSA* rsaKey);
+    static std::string decryptRSA(const std::string& encryptedMessage, RSA* rsaKey);
 
 public:
     static std::string encrypt(const std::string& message, const std::string& publicKey);

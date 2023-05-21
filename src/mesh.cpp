@@ -177,11 +177,14 @@ Mesh::Node Mesh::getNode(const std::string& publicKey) const {
 void Mesh::printMesh() {
     std::cout << "Nodes:\n";
     for (const auto& node : nodes) {
-        std::cout << "Public Key: " << node.publicKey << ", Address: " << node.address << '\n';
+        //print the first 10 characters of the public key that are not  -----BEGIN PUBLIC KEY----- or -----END PUBLIC KEY-----
+        std::cout << "Public Key: " << node.publicKey.substr(72, 10) << '\n';
+        std::cout << "Address: " << node.address << '\n';
     }
 
     std::cout << "Edges:\n";
     for (const auto& edge : edges) {
-        std::cout << "Source: " << edge.source.publicKey << ", Target: " << edge.target.publicKey << '\n';
+        std::cout << "Source: " << edge.source.publicKey.substr(72, 10) << '\n';
+        std::cout << "Target: " << edge.target.publicKey.substr(72, 10) << '\n';
     }
 }
