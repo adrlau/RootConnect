@@ -1,3 +1,4 @@
+
 # RootConnect
 
 A simple baselayer for a chat messaging application/protocol written in C++ for a semester assignment in the course IDATT2004 Network Programming at NTNU (Norwegian University for Science and Technology).
@@ -6,9 +7,10 @@ Description
 In this project, I, Adrian Gunnar Lauterer, have created the foundation of a simple chat messaging application using onion technology written in C++.
 Motivations
 
-## Motivation and Problem Statement
-    
+Github Link: [[https://github.com/adrlau/RootConnect]](https://github.com/adrlau/RootConnect)  (For link to main repo)
+CI run: [[https://github.com/adrlau/RootConnect/actions/runs/5039271133/jobs/9037309258]](https://github.com/adrlau/RootConnect/actions/runs/5039271133/jobs/9037309258) (might not be most current)
 
+## Motivation and Problem Statement
     
     In relation to mobile wireless mesh networks i wanted to create a way to securely and privately communicate with others in the network without revealing what you are communicating and with whom. I wanted to use the idea of onion technology to encrypt the messages and route them through the network so that the current only knows where it came from and should go to next, not neccecarily the source and the destination with asymetric encryption to keep the content private.
     Because i wanted to explore the problems with securoty and protection against triangulation choose this problem statement as my project.
