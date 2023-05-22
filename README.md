@@ -7,9 +7,9 @@ Description
 In this project, I, Adrian Gunnar Lauterer, have created the foundation of a simple chat messaging application using onion technology written in C++.
 Motivations
 
-Github Link: [[https://github.com/adrlau/RootConnect]](https://github.com/adrlau/RootConnect)  (For link to main repo)
+Github Link: [https://github.com/adrlau/RootConnect](https://github.com/adrlau/RootConnect)  (For link to main repo)
 
-CI run: [[https://github.com/adrlau/RootConnect/actions/runs/5039271133/jobs/9037309258]](https://github.com/adrlau/RootConnect/actions/runs/5039271133/jobs/9037309258) (might not be most current)
+CI run: [https://github.com/adrlau/RootConnect/actions/runs/5039271133/jobs/9037309258](https://github.com/adrlau/RootConnect/actions/runs/5039271133/jobs/9037309258) (might not be most current)
 
 ## Motivation and Problem Statement
     
